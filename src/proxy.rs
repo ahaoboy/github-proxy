@@ -42,7 +42,7 @@ impl fmt::Display for Proxy {
 }
 
 impl Proxy {
-    pub fn url(&self, resource: GitHubResource) -> String {
+    pub fn url(&self, resource: GitHubResource) -> Option<String> {
         resource.url(self)
     }
 }

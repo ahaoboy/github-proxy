@@ -53,10 +53,20 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     // Generate and print URL
-    let url = resource.url(&proxy_type);
-    println!("{}", url);
-
-    Ok(())
+    match resource.url(&proxy_type) {
+        Some(url) => {
+            println!("{}", url);
+            Ok(())
+        }
+        None => {
+            eprintln!(
+                "Error: {} proxy does not support {:?} resources",
+                proxy_type, resource
+            );
+            eprintln!("Note: jsdelivr does not support release assets from /releases/download/");
+            std::process::exit(1);
+        }
+    }
 }
 
 fn print_usage() {

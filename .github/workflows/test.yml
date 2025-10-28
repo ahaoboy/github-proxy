@@ -66,6 +66,19 @@ jobs:
           for proxy in "${PROXIES[@]}"; do
             echo ""
             echo "Testing $proxy proxy (release)..."
+
+            # jsdelivr doesn't support release assets
+            if [ "$proxy" = "jsdelivr" ]; then
+              echo "  ⊘ Skipping (jsdelivr doesn't support release assets)"
+              if github-proxy "$proxy" release easy-install easy-install nightly ei-aarch64-apple-darwin.tar.gz 2>/dev/null; then
+                echo "  ✗ Expected error but got success"
+                exit 1
+              else
+                echo "  ✓ Correctly rejected unsupported resource type"
+              fi
+              continue
+            fi
+
             URL=$(github-proxy "$proxy" release easy-install easy-install nightly ei-aarch64-apple-darwin.tar.gz)
             echo "  Generated URL: $URL"
 

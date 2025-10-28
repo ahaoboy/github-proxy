@@ -54,14 +54,17 @@ impl GitHubResource {
     }
 
     /// Convert the resource to a proxied URL
-    pub fn url(&self, proxy_type: &Proxy) -> String {
+    ///
+    /// Returns None if the proxy type doesn't support the resource type
+    /// (e.g., jsdelivr doesn't support release assets from /releases/download/)
+    pub fn url(&self, proxy_type: &Proxy) -> Option<String> {
         match self {
             GitHubResource::File {
                 owner,
                 repo,
                 reference,
                 path,
-            } => match proxy_type {
+            } => Some(match proxy_type {
                 Proxy::GitHub => {
                     format!(
                         "https://github.com/{}/{}/raw/{}/{}",
@@ -86,37 +89,27 @@ impl GitHubResource {
                         owner, repo, reference, path
                     )
                 }
-            },
+            }),
             GitHubResource::Release {
                 owner,
                 repo,
                 tag,
                 name,
             } => match proxy_type {
-                Proxy::GitHub => {
-                    format!(
-                        "https://github.com/{}/{}/releases/download/{}/{}",
-                        owner, repo, tag, name
-                    )
-                }
-                Proxy::Xget => {
-                    format!(
-                        "https://xget.xi-xu.me/gh/{}/{}/releases/download/{}/{}",
-                        owner, repo, tag, name
-                    )
-                }
-                Proxy::GhProxy => {
-                    format!(
-                        "https://gh-proxy.com/https://github.com/{}/{}/releases/download/{}/{}",
-                        owner, repo, tag, name
-                    )
-                }
-                Proxy::Jsdelivr => {
-                    format!(
-                        "https://cdn.jsdelivr.net/gh/{}/{}@{}/{}",
-                        owner, repo, tag, name
-                    )
-                }
+                Proxy::GitHub => Some(format!(
+                    "https://github.com/{}/{}/releases/download/{}/{}",
+                    owner, repo, tag, name
+                )),
+                Proxy::Xget => Some(format!(
+                    "https://xget.xi-xu.me/gh/{}/{}/releases/download/{}/{}",
+                    owner, repo, tag, name
+                )),
+                Proxy::GhProxy => Some(format!(
+                    "https://gh-proxy.com/https://github.com/{}/{}/releases/download/{}/{}",
+                    owner, repo, tag, name
+                )),
+                // jsdelivr doesn't support release assets from /releases/download/
+                Proxy::Jsdelivr => None,
             },
         }
     }
