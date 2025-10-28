@@ -6,7 +6,7 @@
 //! # Examples
 //!
 //! ```
-//! use github_proxy::{GitHubResource, ProxyType};
+//! use github_proxy::{GitHubResource, Proxy};
 //!
 //! // Create a file resource
 //! let resource = GitHubResource::file(
@@ -17,8 +17,8 @@
 //! );
 //!
 //! // Generate URL with xget proxy
-//! let proxy = ProxyType::Xget;
-//! let url = resource.to_url(&proxy);
+//! let proxy = Proxy::Xget;
+//! let url = resource.url(&proxy);
 //! println!("{}", url);
 //! ```
 
@@ -28,7 +28,7 @@ mod proxy;
 mod resource;
 
 pub use error::ConversionError;
-pub use proxy::ProxyType;
+pub use proxy::Proxy;
 pub use resource::GitHubResource;
 
 #[cfg(test)]
@@ -45,7 +45,7 @@ mod tests {
             "main".to_string(),
             "install.sh".to_string(),
         );
-        let url = resource.to_url(&ProxyType::Xget);
+        let url = resource.url(&Proxy::Xget);
         assert_eq!(
             url,
             "https://xget.xi-xu.me/gh/easy-install/easy-install/raw/main/install.sh"
@@ -60,7 +60,7 @@ mod tests {
             "main".to_string(),
             "file.sh".to_string(),
         );
-        let url = resource.to_url(&ProxyType::GhProxy);
+        let url = resource.url(&Proxy::GhProxy);
         assert_eq!(
             url,
             "https://gh-proxy.com/https://github.com/owner/repo/raw/main/file.sh"
@@ -75,7 +75,7 @@ mod tests {
             "main".to_string(),
             "file.js".to_string(),
         );
-        let url = resource.to_url(&ProxyType::Jsdelivr);
+        let url = resource.url(&Proxy::Jsdelivr);
         assert_eq!(url, "https://cdn.jsdelivr.net/gh/owner/repo@main/file.js");
     }
 
@@ -87,7 +87,7 @@ mod tests {
             "main".to_string(),
             "file.sh".to_string(),
         );
-        let url = resource.to_url(&ProxyType::GitHub);
+        let url = resource.url(&Proxy::GitHub);
         assert_eq!(url, "https://github.com/owner/repo/raw/main/file.sh");
     }
 
@@ -99,7 +99,7 @@ mod tests {
             "nightly".to_string(),
             "ei-aarch64-apple-darwin.tar.gz".to_string(),
         );
-        let url = resource.to_url(&ProxyType::Xget);
+        let url = resource.url(&Proxy::Xget);
         assert_eq!(
             url,
             "https://xget.xi-xu.me/gh/easy-install/easy-install/releases/download/nightly/ei-aarch64-apple-darwin.tar.gz"
@@ -114,7 +114,7 @@ mod tests {
             "v1.0.0".to_string(),
             "app.tar.gz".to_string(),
         );
-        let url = resource.to_url(&ProxyType::GhProxy);
+        let url = resource.url(&Proxy::GhProxy);
         assert_eq!(
             url,
             "https://gh-proxy.com/https://github.com/owner/repo/releases/download/v1.0.0/app.tar.gz"
@@ -129,7 +129,7 @@ mod tests {
             "v1.0.0".to_string(),
             "app.tar.gz".to_string(),
         );
-        let url = resource.to_url(&ProxyType::Jsdelivr);
+        let url = resource.url(&Proxy::Jsdelivr);
         assert_eq!(
             url,
             "https://cdn.jsdelivr.net/gh/owner/repo@v1.0.0/app.tar.gz"
@@ -144,7 +144,7 @@ mod tests {
             "v1.0.0".to_string(),
             "app.tar.gz".to_string(),
         );
-        let url = resource.to_url(&ProxyType::GitHub);
+        let url = resource.url(&Proxy::GitHub);
         assert_eq!(
             url,
             "https://github.com/owner/repo/releases/download/v1.0.0/app.tar.gz"
@@ -153,15 +153,12 @@ mod tests {
 
     #[test]
     fn test_proxy_type_from_str() {
-        assert_eq!(ProxyType::from_str("github").unwrap(), ProxyType::GitHub);
-        assert_eq!(ProxyType::from_str("gh-proxy").unwrap(), ProxyType::GhProxy);
-        assert_eq!(ProxyType::from_str("xget").unwrap(), ProxyType::Xget);
-        assert_eq!(
-            ProxyType::from_str("jsdelivr").unwrap(),
-            ProxyType::Jsdelivr
-        );
-        assert_eq!(ProxyType::from_str("XGET").unwrap(), ProxyType::Xget);
-        assert!(ProxyType::from_str("invalid").is_err());
+        assert_eq!(Proxy::from_str("github").unwrap(), Proxy::GitHub);
+        assert_eq!(Proxy::from_str("gh-proxy").unwrap(), Proxy::GhProxy);
+        assert_eq!(Proxy::from_str("xget").unwrap(), Proxy::Xget);
+        assert_eq!(Proxy::from_str("jsdelivr").unwrap(), Proxy::Jsdelivr);
+        assert_eq!(Proxy::from_str("XGET").unwrap(), Proxy::Xget);
+        assert!(Proxy::from_str("invalid").is_err());
     }
 
     #[test]
@@ -172,7 +169,7 @@ mod tests {
             "main".to_string(),
             "src/lib/file.rs".to_string(),
         );
-        let url = resource.to_url(&ProxyType::Xget);
+        let url = resource.url(&Proxy::Xget);
         assert_eq!(
             url,
             "https://xget.xi-xu.me/gh/owner/repo/raw/main/src/lib/file.rs"
@@ -187,7 +184,7 @@ mod tests {
             "refs/heads/main".to_string(),
             "file.sh".to_string(),
         );
-        let url = resource.to_url(&ProxyType::GitHub);
+        let url = resource.url(&Proxy::GitHub);
         assert_eq!(
             url,
             "https://github.com/owner/repo/raw/refs/heads/main/file.sh"

@@ -1,7 +1,20 @@
 [package]
 name = "github-proxy"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+license = "MIT"
+description = "github-proxy"
+repository = "https://github.com/ahaoboy/github-proxy"
+homepage = "https://github.com/ahaoboy/github-proxy"
+authors = ["ahaoboy"]
 
 [dependencies]
-thiserror = "1.0"
+thiserror = "2"
+serde = { version = "1", features = ["derive"], optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+strum = "0.27"
+strum_macros = "0.27"
+
+[features]
+serde = ["dep:serde"]
+wasm = ["wasm-bindgen"]

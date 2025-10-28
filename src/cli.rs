@@ -1,8 +1,7 @@
-use std::str::FromStr as _;
-
 use crate::error::ConversionError;
-use crate::proxy::ProxyType;
+use crate::proxy::Proxy;
 use crate::resource::GitHubResource;
+use std::str::FromStr as _;
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
@@ -16,14 +15,14 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     let resource_type_str = &args[2];
 
     // Parse proxy type
-    let proxy_type = ProxyType::from_str(proxy_type_str)?;
+    let proxy_type = Proxy::from_str(proxy_type_str)?;
 
     // Parse resource based on type
     let resource = match resource_type_str.to_lowercase().as_str() {
         "file" => {
             if args.len() != 7 {
                 return Err(ConversionError::InvalidArguments(
-                    "file requires 4 arguments: owner repo branch path".to_string(),
+                    "file requires 4 arguments: owner repo reference path".to_string(),
                 )
                 .into());
             }
@@ -54,7 +53,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     // Generate and print URL
-    let url = resource.to_url(&proxy_type);
+    let url = resource.url(&proxy_type);
     println!("{}", url);
 
     Ok(())
@@ -70,13 +69,17 @@ fn print_usage() {
     eprintln!("  jsdelivr    cdn.jsdelivr.net service");
     eprintln!();
     eprintln!("Resource Types:");
-    eprintln!("  file <owner> <repo> <branch> <path>");
+    eprintln!("  file <owner> <repo> <reference> <path>");
     eprintln!("    Generate URL for a raw file in repository");
+    eprintln!("    reference can be: branch, tag, commit hash, or refs/heads/branch");
     eprintln!();
     eprintln!("  release <owner> <repo> <tag> <name>");
     eprintln!("    Generate URL for a release asset");
     eprintln!();
     eprintln!("Examples:");
     eprintln!("  github-proxy xget file easy-install easy-install main install.sh");
-    eprintln!("  github-proxy gh-proxy release easy-install easy-install nightly ei-aarch64-apple-darwin.tar.gz");
+    eprintln!("  github-proxy xget file owner repo refs/heads/main src/lib.rs");
+    eprintln!(
+        "  github-proxy gh-proxy release easy-install easy-install nightly ei-aarch64-apple-darwin.tar.gz"
+    );
 }

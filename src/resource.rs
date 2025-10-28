@@ -1,14 +1,19 @@
-use crate::proxy::ProxyType;
+use strum_macros::EnumIter;
+
+use crate::proxy::Proxy;
 
 /// GitHub resource types
-#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(EnumIter, Debug, PartialEq, Hash, Eq, Clone)]
 pub enum GitHubResource {
     /// Raw file in a repository
-    /// Format: owner/repo/branch/path
+    /// Format: owner/repo/reference/path
+    /// reference can be: branch name, tag, commit hash, or refs/heads/branch
     File {
         owner: String,
         repo: String,
-        branch: String,
+        reference: String,
         path: String,
     },
     /// Release asset
@@ -23,11 +28,17 @@ pub enum GitHubResource {
 
 impl GitHubResource {
     /// Create a new file resource
-    pub fn file(owner: String, repo: String, branch: String, path: String) -> Self {
+    ///
+    /// # Arguments
+    /// * `owner` - Repository owner
+    /// * `repo` - Repository name
+    /// * `reference` - Git reference (branch, tag, commit hash, or refs/heads/branch)
+    /// * `path` - File path in the repository
+    pub fn file(owner: String, repo: String, reference: String, path: String) -> Self {
         GitHubResource::File {
             owner,
             repo,
-            branch,
+            reference,
             path,
         }
     }
@@ -43,36 +54,36 @@ impl GitHubResource {
     }
 
     /// Convert the resource to a proxied URL
-    pub fn to_url(&self, proxy_type: &ProxyType) -> String {
+    pub fn url(&self, proxy_type: &Proxy) -> String {
         match self {
             GitHubResource::File {
                 owner,
                 repo,
-                branch,
+                reference,
                 path,
             } => match proxy_type {
-                ProxyType::GitHub => {
+                Proxy::GitHub => {
                     format!(
                         "https://github.com/{}/{}/raw/{}/{}",
-                        owner, repo, branch, path
+                        owner, repo, reference, path
                     )
                 }
-                ProxyType::Xget => {
+                Proxy::Xget => {
                     format!(
                         "https://xget.xi-xu.me/gh/{}/{}/raw/{}/{}",
-                        owner, repo, branch, path
+                        owner, repo, reference, path
                     )
                 }
-                ProxyType::GhProxy => {
+                Proxy::GhProxy => {
                     format!(
                         "https://gh-proxy.com/https://github.com/{}/{}/raw/{}/{}",
-                        owner, repo, branch, path
+                        owner, repo, reference, path
                     )
                 }
-                ProxyType::Jsdelivr => {
+                Proxy::Jsdelivr => {
                     format!(
                         "https://cdn.jsdelivr.net/gh/{}/{}@{}/{}",
-                        owner, repo, branch, path
+                        owner, repo, reference, path
                     )
                 }
             },
@@ -82,25 +93,25 @@ impl GitHubResource {
                 tag,
                 name,
             } => match proxy_type {
-                ProxyType::GitHub => {
+                Proxy::GitHub => {
                     format!(
                         "https://github.com/{}/{}/releases/download/{}/{}",
                         owner, repo, tag, name
                     )
                 }
-                ProxyType::Xget => {
+                Proxy::Xget => {
                     format!(
                         "https://xget.xi-xu.me/gh/{}/{}/releases/download/{}/{}",
                         owner, repo, tag, name
                     )
                 }
-                ProxyType::GhProxy => {
+                Proxy::GhProxy => {
                     format!(
                         "https://gh-proxy.com/https://github.com/{}/{}/releases/download/{}/{}",
                         owner, repo, tag, name
                     )
                 }
-                ProxyType::Jsdelivr => {
+                Proxy::Jsdelivr => {
                     format!(
                         "https://cdn.jsdelivr.net/gh/{}/{}@{}/{}",
                         owner, repo, tag, name
