@@ -26,3 +26,66 @@ jobs:
       - name: cargo test
         run: |
           cargo test
+
+      - name: Install github-proxy
+        run: |
+          cargo install --path .
+
+      - name: Test all proxy services
+        run: |
+          set -e
+
+          # Define proxy types
+          PROXIES=("github" "xget" "gh-proxy" "jsdelivr")
+
+          echo "=========================================="
+          echo "Testing File Resources"
+          echo "=========================================="
+
+          for proxy in "${PROXIES[@]}"; do
+            echo ""
+            echo "Testing $proxy proxy (file)..."
+            URL=$(github-proxy "$proxy" file easy-install easy-install main install.sh)
+            echo "  Generated URL: $URL"
+
+            OUTPUT_FILE="/tmp/test-file-${proxy}.sh"
+            if curl -fsSL "$URL" -o "$OUTPUT_FILE"; then
+              echo "  ✓ Download successful"
+              ls -lh "$OUTPUT_FILE"
+            else
+              echo "  ✗ Download failed"
+              exit 1
+            fi
+          done
+
+          echo ""
+          echo "=========================================="
+          echo "Testing Release Resources"
+          echo "=========================================="
+
+          for proxy in "${PROXIES[@]}"; do
+            echo ""
+            echo "Testing $proxy proxy (release)..."
+            URL=$(github-proxy "$proxy" release easy-install easy-install nightly ei-aarch64-apple-darwin.tar.gz)
+            echo "  Generated URL: $URL"
+
+            OUTPUT_FILE="/tmp/test-release-${proxy}.tar.gz"
+            if curl -fsSL "$URL" -o "$OUTPUT_FILE"; then
+              echo "  ✓ Download successful"
+              ls -lh "$OUTPUT_FILE"
+            else
+              echo "  ✗ Download failed"
+              exit 1
+            fi
+          done
+
+          echo ""
+          echo "=========================================="
+          echo "All Tests Passed!"
+          echo "=========================================="
+          echo ""
+          echo "File downloads:"
+          ls -lh /tmp/test-file-*.sh
+          echo ""
+          echo "Release downloads:"
+          ls -lh /tmp/test-release-*.tar.gz
