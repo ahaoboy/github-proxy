@@ -1,6 +1,6 @@
 use crate::error::ConversionError;
 use crate::proxy::Proxy;
-use crate::resource::GitHubResource;
+use crate::resource::Resource;
 use std::str::FromStr as _;
 
 pub fn run() -> Result<(), Box<dyn std::error::Error>> {
@@ -26,7 +26,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 )
                 .into());
             }
-            GitHubResource::file(
+            Resource::file(
                 args[3].clone(),
                 args[4].clone(),
                 args[5].clone(),
@@ -40,7 +40,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 )
                 .into());
             }
-            GitHubResource::release(
+            Resource::release(
                 args[3].clone(),
                 args[4].clone(),
                 args[5].clone(),

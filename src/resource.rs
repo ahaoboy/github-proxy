@@ -1,12 +1,11 @@
-use strum_macros::EnumIter;
-
 use crate::proxy::Proxy;
+use strum_macros::EnumIter;
 
 /// GitHub resource types
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[derive(EnumIter, Debug, PartialEq, Hash, Eq, Clone)]
-pub enum GitHubResource {
+pub enum Resource {
     /// Raw file in a repository
     /// Format: owner/repo/reference/path
     /// reference can be: branch name, tag, commit hash, or refs/heads/branch
@@ -26,7 +25,7 @@ pub enum GitHubResource {
     },
 }
 
-impl GitHubResource {
+impl Resource {
     /// Create a new file resource
     ///
     /// # Arguments
@@ -35,7 +34,7 @@ impl GitHubResource {
     /// * `reference` - Git reference (branch, tag, commit hash, or refs/heads/branch)
     /// * `path` - File path in the repository
     pub fn file(owner: String, repo: String, reference: String, path: String) -> Self {
-        GitHubResource::File {
+        Resource::File {
             owner,
             repo,
             reference,
@@ -45,7 +44,7 @@ impl GitHubResource {
 
     /// Create a new release resource
     pub fn release(owner: String, repo: String, tag: String, name: String) -> Self {
-        GitHubResource::Release {
+        Resource::Release {
             owner,
             repo,
             tag,
@@ -59,7 +58,7 @@ impl GitHubResource {
     /// (e.g., jsdelivr doesn't support release assets from /releases/download/)
     pub fn url(&self, proxy_type: &Proxy) -> Option<String> {
         match self {
-            GitHubResource::File {
+            Resource::File {
                 owner,
                 repo,
                 reference,
@@ -96,7 +95,7 @@ impl GitHubResource {
                     )
                 }
             }),
-            GitHubResource::Release {
+            Resource::Release {
                 owner,
                 repo,
                 tag,

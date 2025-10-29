@@ -1,4 +1,4 @@
-use crate::{GitHubResource, error::ConversionError};
+use crate::{Resource, error::ConversionError};
 use std::{fmt, str::FromStr};
 use strum_macros::EnumIter;
 
@@ -46,7 +46,7 @@ impl fmt::Display for Proxy {
 }
 
 impl Proxy {
-    pub fn url(&self, resource: GitHubResource) -> Option<String> {
+    pub fn url(&self, resource: Resource) -> Option<String> {
         resource.url(self)
     }
 }

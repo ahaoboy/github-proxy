@@ -2,10 +2,9 @@ pub mod cli;
 mod error;
 mod proxy;
 mod resource;
-
 pub use error::ConversionError;
 pub use proxy::Proxy;
-pub use resource::GitHubResource;
+pub use resource::Resource;
 
 #[cfg(test)]
 mod tests {
@@ -15,7 +14,7 @@ mod tests {
 
     #[test]
     fn test_file_resource_xget() {
-        let resource = GitHubResource::file(
+        let resource = Resource::file(
             "easy-install".to_string(),
             "easy-install".to_string(),
             "main".to_string(),
@@ -30,7 +29,7 @@ mod tests {
 
     #[test]
     fn test_file_resource_gh_proxy() {
-        let resource = GitHubResource::file(
+        let resource = Resource::file(
             "owner".to_string(),
             "repo".to_string(),
             "main".to_string(),
@@ -45,7 +44,7 @@ mod tests {
 
     #[test]
     fn test_file_resource_jsdelivr() {
-        let resource = GitHubResource::file(
+        let resource = Resource::file(
             "owner".to_string(),
             "repo".to_string(),
             "main".to_string(),
@@ -57,7 +56,7 @@ mod tests {
 
     #[test]
     fn test_file_resource_github() {
-        let resource = GitHubResource::file(
+        let resource = Resource::file(
             "owner".to_string(),
             "repo".to_string(),
             "main".to_string(),
@@ -69,7 +68,7 @@ mod tests {
 
     #[test]
     fn test_release_resource_xget() {
-        let resource = GitHubResource::release(
+        let resource = Resource::release(
             "easy-install".to_string(),
             "easy-install".to_string(),
             "nightly".to_string(),
@@ -84,7 +83,7 @@ mod tests {
 
     #[test]
     fn test_release_resource_gh_proxy() {
-        let resource = GitHubResource::release(
+        let resource = Resource::release(
             "owner".to_string(),
             "repo".to_string(),
             "v1.0.0".to_string(),
@@ -99,7 +98,7 @@ mod tests {
 
     #[test]
     fn test_release_resource_jsdelivr_not_supported() {
-        let resource = GitHubResource::release(
+        let resource = Resource::release(
             "owner".to_string(),
             "repo".to_string(),
             "v1.0.0".to_string(),
@@ -111,7 +110,7 @@ mod tests {
 
     #[test]
     fn test_release_resource_github() {
-        let resource = GitHubResource::release(
+        let resource = Resource::release(
             "owner".to_string(),
             "repo".to_string(),
             "v1.0.0".to_string(),
@@ -137,7 +136,7 @@ mod tests {
 
     #[test]
     fn test_file_resource_statically() {
-        let resource = GitHubResource::file(
+        let resource = Resource::file(
             "easy-install".to_string(),
             "easy-install".to_string(),
             "main".to_string(),
@@ -152,7 +151,7 @@ mod tests {
 
     #[test]
     fn test_release_resource_statically_not_supported() {
-        let resource = GitHubResource::release(
+        let resource = Resource::release(
             "owner".to_string(),
             "repo".to_string(),
             "v1.0.0".to_string(),
@@ -167,7 +166,7 @@ mod tests {
 
     #[test]
     fn test_nested_file_path() {
-        let resource = GitHubResource::file(
+        let resource = Resource::file(
             "owner".to_string(),
             "repo".to_string(),
             "main".to_string(),
@@ -182,7 +181,7 @@ mod tests {
 
     #[test]
     fn test_branch_with_refs() {
-        let resource = GitHubResource::file(
+        let resource = Resource::file(
             "owner".to_string(),
             "repo".to_string(),
             "refs/heads/main".to_string(),
