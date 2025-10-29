@@ -5,7 +5,7 @@ use strum_macros::EnumIter;
 /// Proxy service types
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[derive(EnumIter, Debug, PartialEq, Hash, Eq, Clone)]
+#[derive(EnumIter, Debug, PartialEq, Hash, Eq, Clone, Copy)]
 pub enum Proxy {
     /// Native Github (no proxy)
     Github,
