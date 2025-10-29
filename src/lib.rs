@@ -62,7 +62,7 @@ mod tests {
             "main".to_string(),
             "file.sh".to_string(),
         );
-        let url = resource.url(&Proxy::GitHub).unwrap();
+        let url = resource.url(&Proxy::Github).unwrap();
         assert_eq!(url, "https://github.com/owner/repo/raw/main/file.sh");
     }
 
@@ -116,7 +116,7 @@ mod tests {
             "v1.0.0".to_string(),
             "app.tar.gz".to_string(),
         );
-        let url = resource.url(&Proxy::GitHub).unwrap();
+        let url = resource.url(&Proxy::Github).unwrap();
         assert_eq!(
             url,
             "https://github.com/owner/repo/releases/download/v1.0.0/app.tar.gz"
@@ -125,7 +125,7 @@ mod tests {
 
     #[test]
     fn test_proxy_type_from_str() {
-        assert_eq!(Proxy::from_str("github").unwrap(), Proxy::GitHub);
+        assert_eq!(Proxy::from_str("github").unwrap(), Proxy::Github);
         assert_eq!(Proxy::from_str("gh-proxy").unwrap(), Proxy::GhProxy);
         assert_eq!(Proxy::from_str("xget").unwrap(), Proxy::Xget);
         assert_eq!(Proxy::from_str("jsdelivr").unwrap(), Proxy::Jsdelivr);
@@ -187,7 +187,7 @@ mod tests {
             "refs/heads/main".to_string(),
             "file.sh".to_string(),
         );
-        let url = resource.url(&Proxy::GitHub).unwrap();
+        let url = resource.url(&Proxy::Github).unwrap();
         assert_eq!(
             url,
             "https://github.com/owner/repo/raw/refs/heads/main/file.sh"

@@ -75,7 +75,7 @@ fn print_usage() {
     eprintln!("Usage: github-proxy <proxy-type> <resource-type> <args...>");
     eprintln!();
     eprintln!("Proxy Types:");
-    eprintln!("  github      Native GitHub (no proxy)");
+    eprintln!("  github      Native Github (no proxy)");
     eprintln!("  gh-proxy    gh-proxy.com service");
     eprintln!("  xget        xget.xi-xu.me service");
     eprintln!("  jsdelivr    cdn.jsdelivr.net service (files only)");

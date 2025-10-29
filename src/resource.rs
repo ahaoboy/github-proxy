@@ -1,7 +1,7 @@
 use crate::proxy::Proxy;
 use strum_macros::EnumIter;
 
-/// GitHub resource types
+/// Github resource types
 #[cfg_attr(feature = "wasm", wasm_bindgen::prelude::wasm_bindgen)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[derive(EnumIter, Debug, PartialEq, Hash, Eq, Clone)]
@@ -64,7 +64,7 @@ impl Resource {
                 reference,
                 path,
             } => Some(match proxy_type {
-                Proxy::GitHub => {
+                Proxy::Github => {
                     format!(
                         "https://github.com/{}/{}/raw/{}/{}",
                         owner, repo, reference, path
@@ -101,7 +101,7 @@ impl Resource {
                 tag,
                 name,
             } => match proxy_type {
-                Proxy::GitHub => Some(format!(
+                Proxy::Github => Some(format!(
                     "https://github.com/{}/{}/releases/download/{}/{}",
                     owner, repo, tag, name
                 )),

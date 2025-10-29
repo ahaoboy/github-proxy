@@ -7,8 +7,8 @@ use strum_macros::EnumIter;
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[derive(EnumIter, Debug, PartialEq, Hash, Eq, Clone)]
 pub enum Proxy {
-    /// Native GitHub (no proxy)
-    GitHub,
+    /// Native Github (no proxy)
+    Github,
     /// gh-proxy.com service
     GhProxy,
     /// xget.xi-xu.me service
@@ -23,7 +23,7 @@ impl FromStr for Proxy {
     type Err = ConversionError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s.to_lowercase().as_str() {
-            "github" => Ok(Proxy::GitHub),
+            "github" => Ok(Proxy::Github),
             "gh-proxy" => Ok(Proxy::GhProxy),
             "xget" => Ok(Proxy::Xget),
             "jsdelivr" => Ok(Proxy::Jsdelivr),
@@ -36,7 +36,7 @@ impl FromStr for Proxy {
 impl fmt::Display for Proxy {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Proxy::GitHub => write!(f, "github"),
+            Proxy::Github => write!(f, "github"),
             Proxy::GhProxy => write!(f, "gh-proxy"),
             Proxy::Xget => write!(f, "xget"),
             Proxy::Jsdelivr => write!(f, "jsdelivr"),
