@@ -130,8 +130,39 @@ mod tests {
         assert_eq!(Proxy::from_str("gh-proxy").unwrap(), Proxy::GhProxy);
         assert_eq!(Proxy::from_str("xget").unwrap(), Proxy::Xget);
         assert_eq!(Proxy::from_str("jsdelivr").unwrap(), Proxy::Jsdelivr);
+        assert_eq!(Proxy::from_str("statically").unwrap(), Proxy::Statically);
         assert_eq!(Proxy::from_str("XGET").unwrap(), Proxy::Xget);
         assert!(Proxy::from_str("invalid").is_err());
+    }
+
+    #[test]
+    fn test_file_resource_statically() {
+        let resource = GitHubResource::file(
+            "easy-install".to_string(),
+            "easy-install".to_string(),
+            "main".to_string(),
+            "install.sh".to_string(),
+        );
+        let url = resource.url(&Proxy::Statically).unwrap();
+        assert_eq!(
+            url,
+            "https://cdn.statically.io/gh/easy-install/easy-install/main/install.sh"
+        );
+    }
+
+    #[test]
+    fn test_release_resource_statically_not_supported() {
+        let resource = GitHubResource::release(
+            "owner".to_string(),
+            "repo".to_string(),
+            "v1.0.0".to_string(),
+            "app.tar.gz".to_string(),
+        );
+        let url = resource.url(&Proxy::Statically);
+        assert!(
+            url.is_none(),
+            "statically should not support release assets"
+        );
     }
 
     #[test]

@@ -63,7 +63,9 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
                 "Error: {} proxy does not support {:?} resources",
                 proxy_type, resource
             );
-            eprintln!("Note: jsdelivr does not support release assets from /releases/download/");
+            eprintln!(
+                "Note: jsdelivr and statically do not support release assets from /releases/download/"
+            );
             std::process::exit(1);
         }
     }
@@ -76,7 +78,8 @@ fn print_usage() {
     eprintln!("  github      Native GitHub (no proxy)");
     eprintln!("  gh-proxy    gh-proxy.com service");
     eprintln!("  xget        xget.xi-xu.me service");
-    eprintln!("  jsdelivr    cdn.jsdelivr.net service");
+    eprintln!("  jsdelivr    cdn.jsdelivr.net service (files only)");
+    eprintln!("  statically  cdn.statically.io service (files only)");
     eprintln!();
     eprintln!("Resource Types:");
     eprintln!("  file <owner> <repo> <reference> <path>");

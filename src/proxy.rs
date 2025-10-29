@@ -15,6 +15,8 @@ pub enum Proxy {
     Xget,
     /// cdn.jsdelivr.net service
     Jsdelivr,
+    /// cdn.statically.io service
+    Statically,
 }
 
 impl FromStr for Proxy {
@@ -25,6 +27,7 @@ impl FromStr for Proxy {
             "gh-proxy" => Ok(Proxy::GhProxy),
             "xget" => Ok(Proxy::Xget),
             "jsdelivr" => Ok(Proxy::Jsdelivr),
+            "statically" => Ok(Proxy::Statically),
             _ => Err(ConversionError::InvalidProxyType(s.to_string())),
         }
     }
@@ -37,6 +40,7 @@ impl fmt::Display for Proxy {
             Proxy::GhProxy => write!(f, "gh-proxy"),
             Proxy::Xget => write!(f, "xget"),
             Proxy::Jsdelivr => write!(f, "jsdelivr"),
+            Proxy::Statically => write!(f, "statically"),
         }
     }
 }

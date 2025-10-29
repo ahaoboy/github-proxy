@@ -36,7 +36,7 @@ jobs:
           set -e
 
           # Define proxy types
-          PROXIES=("github" "xget" "gh-proxy" "jsdelivr")
+          PROXIES=("github" "xget" "gh-proxy" "jsdelivr" "statically")
 
           echo "=========================================="
           echo "Testing File Resources"
@@ -67,9 +67,9 @@ jobs:
             echo ""
             echo "Testing $proxy proxy (release)..."
 
-            # jsdelivr doesn't support release assets
-            if [ "$proxy" = "jsdelivr" ]; then
-              echo "  ⊘ Skipping (jsdelivr doesn't support release assets)"
+            # jsdelivr and statically don't support release assets
+            if [ "$proxy" = "jsdelivr" ] || [ "$proxy" = "statically" ]; then
+              echo "  ⊘ Skipping ($proxy doesn't support release assets)"
               if github-proxy "$proxy" release easy-install easy-install nightly ei-aarch64-apple-darwin.tar.gz 2>/dev/null; then
                 echo "  ✗ Expected error but got success"
                 exit 1

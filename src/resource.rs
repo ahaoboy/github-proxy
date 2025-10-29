@@ -89,6 +89,12 @@ impl GitHubResource {
                         owner, repo, reference, path
                     )
                 }
+                Proxy::Statically => {
+                    format!(
+                        "https://cdn.statically.io/gh/{}/{}/{}/{}",
+                        owner, repo, reference, path
+                    )
+                }
             }),
             GitHubResource::Release {
                 owner,
@@ -110,6 +116,8 @@ impl GitHubResource {
                 )),
                 // jsdelivr doesn't support release assets from /releases/download/
                 Proxy::Jsdelivr => None,
+                // statically doesn't support release assets from /releases/download/
+                Proxy::Statically => None,
             },
         }
     }
