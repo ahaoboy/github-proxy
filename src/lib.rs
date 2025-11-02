@@ -193,4 +193,115 @@ mod tests {
             "https://github.com/owner/repo/raw/refs/heads/main/file.sh"
         );
     }
+
+    #[test]
+    fn test_parse_raw_file_url() {
+        let url = "https://github.com/easy-install/easy-install/raw/main/install.sh";
+        let resource = Resource::try_from(url).unwrap();
+        assert_eq!(
+            resource,
+            Resource::file(
+                "easy-install".to_string(),
+                "easy-install".to_string(),
+                "main".to_string(),
+                "install.sh".to_string()
+            )
+        );
+    }
+
+    #[test]
+    fn test_parse_blob_file_url() {
+        let url = "https://github.com/owner/repo/blob/main/src/lib.rs";
+        let resource = Resource::try_from(url).unwrap();
+        assert_eq!(
+            resource,
+            Resource::file(
+                "owner".to_string(),
+                "repo".to_string(),
+                "main".to_string(),
+                "src/lib.rs".to_string()
+            )
+        );
+    }
+
+    #[test]
+    fn test_parse_release_download_url() {
+        let url = "https://github.com/easy-install/easy-install/releases/download/nightly/ei-aarch64-apple-darwin.tar.gz";
+        let resource = Resource::try_from(url).unwrap();
+        assert_eq!(
+            resource,
+            Resource::release(
+                "easy-install".to_string(),
+                "easy-install".to_string(),
+                "nightly".to_string(),
+                "ei-aarch64-apple-darwin.tar.gz".to_string()
+            )
+        );
+    }
+
+    #[test]
+    fn test_parse_raw_file_with_refs() {
+        let url = "https://github.com/owner/repo/raw/refs/heads/main/file.sh";
+        let resource = Resource::try_from(url).unwrap();
+        assert_eq!(
+            resource,
+            Resource::file(
+                "owner".to_string(),
+                "repo".to_string(),
+                "refs/heads/main".to_string(),
+                "file.sh".to_string()
+            )
+        );
+    }
+
+    #[test]
+    fn test_parse_nested_path() {
+        let url = "https://github.com/owner/repo/raw/main/src/lib/file.rs";
+        let resource = Resource::try_from(url).unwrap();
+        assert_eq!(
+            resource,
+            Resource::file(
+                "owner".to_string(),
+                "repo".to_string(),
+                "main".to_string(),
+                "src/lib/file.rs".to_string()
+            )
+        );
+    }
+
+    #[test]
+    fn test_parse_invalid_url() {
+        let url = "https://example.com/file.sh";
+        let result = Resource::try_from(url);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_parse_http_url() {
+        let url = "http://github.com/owner/repo/raw/main/file.sh";
+        let resource = Resource::try_from(url).unwrap();
+        assert_eq!(
+            resource,
+            Resource::file(
+                "owner".to_string(),
+                "repo".to_string(),
+                "main".to_string(),
+                "file.sh".to_string()
+            )
+        );
+    }
+    #[test]
+    fn test_parse_fish() {
+        let url = "https://github.com/fish-shell/fish-shell/releases/download/4.1.2/fish-4.1.2-linux-aarch64.tar.xz";
+        let resource = Resource::try_from(url).unwrap();
+        assert_eq!(
+            resource,
+            Resource::release(
+                "fish-shell".to_string(),
+                "fish-shell".to_string(),
+                "4.1.2".to_string(),
+                "fish-4.1.2-linux-aarch64.tar.xz".to_string()
+            )
+        );
+    }
 }
