@@ -14,7 +14,7 @@ serde = { version = "1", features = ["derive"], optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
 strum = "0.27"
 strum_macros = "0.27"
-regex = "1.10"
+regex = "1"
 
 [features]
 serde = ["dep:serde"]
