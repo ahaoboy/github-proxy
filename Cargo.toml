@@ -14,8 +14,21 @@ serde = { version = "1", features = ["derive"], optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
 strum = "0.27"
 strum_macros = "0.27"
-regex = "1"
+regex = { version = "1", default-features = false }
 
 [features]
 serde = ["dep:serde"]
 wasm = ["wasm-bindgen"]
+
+[profile.release]
+debug = false
+lto = true
+strip = true
+opt-level = 3
+codegen-units = 1
+
+[profile.bloaty]
+debug = true
+lto = false
+strip = false
+inherits = 'release'
