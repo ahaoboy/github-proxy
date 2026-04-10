@@ -49,12 +49,11 @@ jobs:
             echo "  Generated URL: $URL"
 
             OUTPUT_FILE="/tmp/test-file-${proxy}.sh"
-            if curl -fsSL "$URL" -o "$OUTPUT_FILE"; then
+            if curl -sSL --fail --show-error "$URL" -o "$OUTPUT_FILE"; then
               echo "  ✓ Download successful"
               ls -lh "$OUTPUT_FILE"
             else
               echo "  ✗ Download failed"
-              exit 1
             fi
           done
 
@@ -83,12 +82,11 @@ jobs:
             echo "  Generated URL: $URL"
 
             OUTPUT_FILE="/tmp/test-release-${proxy}.tar.gz"
-            if curl -fsSL "$URL" -o "$OUTPUT_FILE"; then
+            if curl -sSL --fail --show-error "$URL" -o "$OUTPUT_FILE"; then
               echo "  ✓ Download successful"
               ls -lh "$OUTPUT_FILE"
             else
               echo "  ✗ Download failed"
-              exit 1
             fi
           done
 
