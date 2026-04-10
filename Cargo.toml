@@ -12,8 +12,8 @@ authors = ["ahaoboy"]
 thiserror = "2"
 serde = { version = "1", features = ["derive"], optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
-strum = "0.27"
-strum_macros = "0.27"
+strum = "0.28"
+strum_macros = "0.28"
 regex = { version = "1", default-features = false }
 
 [features]
