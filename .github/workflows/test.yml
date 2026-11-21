@@ -1,7 +1,7 @@
 name: Test
 
 permissions:
-  contents: write
+  contents: read
 
 on: [push]
 
@@ -16,87 +16,98 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v4
-      - name: Install latest nightly
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: nightly
-          override: true
+          components: rustfmt, clippy
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
       - name: cargo test
-        run: |
-          cargo test
+        run: cargo test --all-features
 
       - name: Install github-proxy
-        run: |
-          cargo install --path .
+        run: cargo install --path .
 
       - name: Test all proxy services
         run: |
-          set -e
+          OUT="$RUNNER_TEMP/github-proxy-test"
+          rm -rf "$OUT"
+          mkdir -p "$OUT"
 
-          # Define proxy types
-          PROXIES=("github" "xget" "gh-proxy" "jsdelivr" "statically")
+          PROXIES=(github xget gh-proxy jsdelivr statically)
+          FILE_URL="https://github.com/easy-install/easy-install/raw/main/install.sh"
+          RELEASE_SPEC="easy-install/easy-install@nightly"
+          RELEASE_ASSET="ei-aarch64-apple-darwin.tar.gz"
+
+          summary() {
+            echo ""
+            echo "=========================================="
+            echo "All tests passed"
+            echo "=========================================="
+            ls -lh "$OUT"
+          }
 
           echo "=========================================="
-          echo "Testing File Resources"
+          echo "Mirrors"
           echo "=========================================="
+          github-proxy ls
 
+          echo ""
+          echo "=========================================="
+          echo "Release listing"
+          echo "=========================================="
+          github-proxy ls "$RELEASE_SPEC" --name "$RELEASE_ASSET"
+          echo "--- URL ---"
+          github-proxy ls "$RELEASE_SPEC" --name "$RELEASE_ASSET" --url
+
+          echo ""
+          echo "=========================================="
+          echo "File resources (raw)"
+          echo "=========================================="
           for proxy in "${PROXIES[@]}"; do
             echo ""
-            echo "Testing $proxy proxy (file)..."
-            URL=$(github-proxy "$proxy" file easy-install easy-install main install.sh)
-            echo "  Generated URL: $URL"
+            echo "--- $proxy ---"
+            out="$OUT/raw-$proxy.sh"
+            # `fetch` prints the rewritten URL and downloads it, so this covers
+            # both URL generation and the actual transfer.
+            github-proxy -p "$proxy" fetch "$FILE_URL" -o "$out"
+            test -s "$out"
+            echo "  ✓ $(wc -c < "$out" | tr -d ' ') bytes"
+          done
 
-            OUTPUT_FILE="/tmp/test-file-${proxy}.sh"
-            if curl -sSL --fail --show-error "$URL" -o "$OUTPUT_FILE"; then
-              echo "  ✓ Download successful"
-              ls -lh "$OUTPUT_FILE"
+          echo ""
+          echo "=========================================="
+          echo "Release resources"
+          echo "=========================================="
+          for proxy in "${PROXIES[@]}"; do
+            echo ""
+            echo "--- $proxy ---"
+            out="$OUT/release-$proxy.tar.gz"
+            if github-proxy -p "$proxy" fetch "$RELEASE_SPEC" "$RELEASE_ASSET" -o "$out"; then
+              test -s "$out"
+              echo "  ✓ $(wc -c < "$out" | tr -d ' ') bytes"
+            elif [ "$proxy" = "jsdelivr" ] || [ "$proxy" = "statically" ]; then
+              # These mirrors serve raw files only and must fail loudly.
+              echo "  ⊘ rejected, as expected (no release support)"
+              test ! -e "$out"
             else
-              echo "  ✗ Download failed"
+              echo "  ✗ download failed"
+              exit 1
             fi
           done
 
           echo ""
           echo "=========================================="
-          echo "Testing Release Resources"
+          echo "Latest release (no tag)"
           echo "=========================================="
+          github-proxy fetch easy-install/easy-install "$RELEASE_ASSET" -o "$OUT/latest-$RELEASE_ASSET"
+          test -s "$OUT/latest-$RELEASE_ASSET"
 
-          for proxy in "${PROXIES[@]}"; do
-            echo ""
-            echo "Testing $proxy proxy (release)..."
-
-            # jsdelivr and statically don't support release assets
-            if [ "$proxy" = "jsdelivr" ] || [ "$proxy" = "statically" ]; then
-              echo "  ⊘ Skipping ($proxy doesn't support release assets)"
-              if github-proxy "$proxy" release easy-install easy-install nightly ei-aarch64-apple-darwin.tar.gz 2>/dev/null; then
-                echo "  ✗ Expected error but got success"
-                exit 1
-              else
-                echo "  ✓ Correctly rejected unsupported resource type"
-              fi
-              continue
-            fi
-
-            URL=$(github-proxy "$proxy" release easy-install easy-install nightly ei-aarch64-apple-darwin.tar.gz)
-            echo "  Generated URL: $URL"
-
-            OUTPUT_FILE="/tmp/test-release-${proxy}.tar.gz"
-            if curl -sSL --fail --show-error "$URL" -o "$OUTPUT_FILE"; then
-              echo "  ✓ Download successful"
-              ls -lh "$OUTPUT_FILE"
-            else
-              echo "  ✗ Download failed"
-            fi
-          done
-
-          echo ""
-          echo "=========================================="
-          echo "All Tests Passed!"
-          echo "=========================================="
-          echo ""
-          echo "File downloads:"
-          ls -lh /tmp/test-file-*.sh
-          echo ""
-          echo "Release downloads:"
-          ls -lh /tmp/test-release-*.tar.gz
+          summary

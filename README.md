@@ -34,73 +34,94 @@ cargo install --path .
 
 ### CLI
 
-#### Basic Syntax
+Enabled with the `cli` feature:
 
 ```bash
-github-proxy <proxy-type> <resource-type> <args...>
+cargo install github-proxy --features cli
 ```
 
-#### Proxy Types
+Two subcommands: `ls` to query, `fetch` to download.
 
-- `github` - Native GitHub (no proxy)
-- `gh-proxy` - gh-proxy.com service
-- `xget` - xget.xi-xu.me service
-- `jsdelivr` - cdn.jsdelivr.net service (files only, does not support release assets)
-- `statically` - cdn.statically.io service (files only, does not support release assets)
+```
+Usage: github-proxy [OPTIONS] <COMMAND>
 
-#### Resource Types
+Commands:
+  ls     List mirrors, or the assets of a release
+  fetch  Download a resource
 
-**File Resources**
+Options:
+  -p, --proxy <PROXY>  Mirror to use [default: github]
+                       [possible values: github, gh-proxy, xget, jsdelivr, statically]
+```
+
+#### `ls` — query
 
 ```bash
-github-proxy <proxy-type> file <owner> <repo> <reference> <path>
+# Supported mirrors and what they can serve
+github-proxy ls
+
+# Assets of the latest release: size and name
+github-proxy ls quickjs-ng/quickjs
+
+# Assets of a specific tag
+github-proxy ls quickjs-ng/quickjs@v0.18.0
+
+# Only one asset
+github-proxy ls quickjs-ng/quickjs@v0.18.0 --name qjs-linux-aarch64
+
+# Download URLs instead of size/name
+github-proxy -p xget ls quickjs-ng/quickjs@v0.18.0 --url
 ```
 
-- `owner` - Repository owner
-- `repo` - Repository name
-- `reference` - Branch name, tag, commit hash, or `refs/heads/branch`
-- `path` - File path in the repository
+```
+$ github-proxy ls quickjs-ng/quickjs@v0.18.0
+  3.8 MB  qjs-cosmo.com
+  1.3 MB  qjs-darwin-arm64
+  2.4 MB  qjs-linux-aarch64
+  ...
+```
 
-**Release Resources**
+`jsdelivr` and `statically` only mirror repository files, so listing release
+assets through them fails with an explanation rather than printing unusable
+URLs.
+
+#### `fetch` — download
+
+```
+Usage: github-proxy fetch [OPTIONS] <SPEC> [NAME]
+```
+
+`SPEC` is a GitHub URL or `owner/repo[@tag][/name]`. Omitting the tag uses the
+repository's **latest release**. `NAME` is optional and, when given, means
+**everything after `@` is the tag** — no guessing.
 
 ```bash
-github-proxy <proxy-type> release <owner> <repo> <tag> <name>
+# Latest release
+github-proxy fetch quickjs-ng/quickjs qjs-linux-aarch64
+
+# Name embedded in the spec (last segment)
+github-proxy fetch quickjs-ng/quickjs@v0.18.0/qjs-linux-aarch64
+
+# Separate name: unambiguous even when the tag contains `/`
+github-proxy fetch quickjs-ng/quickjs@release/1.0 qjs-linux-aarch64
+
+# Explicit destination, or an existing directory
+github-proxy fetch quickjs-ng/quickjs@v0.18.0 qjs-linux-aarch64 -o /opt/qjs
+github-proxy fetch quickjs-ng/quickjs@v0.18.0 qjs-linux-aarch64 -o ./bin/
+
+# Raw files work too, by URL (the proxy still applies)
+github-proxy -p xget fetch https://github.com/quickjs-ng/quickjs/raw/master/README.md
 ```
 
-- `owner` - Repository owner
-- `repo` - Repository name
-- `tag` - Release tag
-- `name` - Asset filename
+Without `-o` the asset is written to its own name in the current directory.
 
-#### Examples
+> **Tags containing `/`:** git allows tags like `release/1.0`, so
+> `owner/repo@release/1.0/a.zip` is ambiguous. Pass the name as the second
+> positional (`fetch owner/repo@release/1.0 a.zip`) and the tag is taken
+> verbatim.
 
-**Convert a raw file URL:**
-
-```bash
-# Using xget proxy
-github-proxy xget file easy-install easy-install main install.sh
-# Output: https://xget.xi-xu.me/gh/easy-install/easy-install/raw/main/install.sh
-
-# Using jsdelivr CDN
-github-proxy jsdelivr file owner repo main src/lib.rs
-# Output: https://cdn.jsdelivr.net/gh/owner/repo@main/src/lib.rs
-
-# Using refs/heads format
-github-proxy xget file owner repo refs/heads/main src/lib.rs
-# Output: https://xget.xi-xu.me/gh/owner/repo/raw/refs/heads/main/src/lib.rs
-```
-
-**Convert a release asset URL:**
-
-```bash
-# Using gh-proxy
-github-proxy gh-proxy release easy-install easy-install nightly ei-aarch64-apple-darwin.tar.gz
-# Output: https://gh-proxy.com/https://github.com/easy-install/easy-install/releases/download/nightly/ei-aarch64-apple-darwin.tar.gz
-
-# Using xget
-github-proxy xget release fish-shell fish-shell 4.1.2 fish-4.1.2-linux-aarch64.tar.xz
-# Output: https://xget.xi-xu.me/gh/fish-shell/fish-shell/releases/download/4.1.2/fish-4.1.2-linux-aarch64.tar.xz
-```
+A `GITHUB_TOKEN` (or `gh auth login` / `git credential`) is picked up
+automatically, so private repositories work too.
 
 ### Library Usage
 
@@ -108,7 +129,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-github-proxy = "0.1"
+github-proxy = "0.2"
 ```
 
 #### Basic Example
@@ -192,11 +213,77 @@ fn main() {
 ### Optional Features
 
 - `serde` - Enable serde serialization support
-- `wasm` - Enable WebAssembly support with wasm-bindgen
+- `fetch` - Shared HTTP client plus `bytes` / `text` / `json` helpers
+- `token` - Best-effort `GITHUB_TOKEN` / `gh` / `git credential` detection
+- `artifacts` - `GhArtifact(s)` models and private release asset downloads
+- `cli` - The `github-proxy` command (implies `fetch`, `token`, `artifacts`)
 
 ```toml
 [dependencies]
-github-proxy = { version = "0.1", features = ["serde"] }
+# URL/proxy helpers only
+github-proxy = { version = "0.2", features = ["serde"] }
+
+# Download GitHub content
+github-proxy = { version = "0.2", features = ["fetch", "token", "artifacts"] }
+```
+
+### Downloading
+
+The common API mentions no `reqwest` type, so updating `reqwest` inside this
+crate is not a breaking change for you:
+
+```rust,ignore
+use github_proxy::fetch;
+use github_proxy::token;
+
+let token = token::detect().await;
+let opts = fetch::Options {
+    token: token.as_deref(),
+    timeout: Some(std::time::Duration::from_secs(30)),
+};
+
+let bytes = fetch::bytes("https://github.com/o/r/releases/download/v1/a.zip", opts).await?;
+let json  = fetch::json::<MyType>("https://api.github.com/repos/o/r/releases", opts).await?;
+```
+
+Every call is a single request; retry/backoff policy belongs to the application.
+
+### Custom client
+
+Need cookies, a proxy or a different pooling policy? Build your own client and
+use the `*_with` variants. Take the `reqwest` types from this crate's re-export
+so exactly one version is linked:
+
+```rust,ignore
+use github_proxy::fetch::{self, Client, Options};
+use github_proxy::reqwest; // re-exported, same version as the crate
+
+let client: Client = fetch::builder().cookie_store(true).build()?;
+let bytes = fetch::bytes_with(&client, url, Options::new()).await?;
+
+// Or configure from scratch:
+let client = reqwest::Client::builder()
+    .dns_resolver(/* ... */)
+    .build()?;
+```
+
+> Only the `*_with` / `builder` / `Client` surface names `reqwest`. If you never
+> use those, `reqwest` is a private dependency and may be upgraded in a minor
+> release.
+
+### URL checks
+
+URL validation and GitHub-host classification live on the `Url` type, so they
+cannot be called without a validated value:
+
+```rust,ignore
+use github_proxy::fetch::Url;
+
+let url = Url::parse("https://github.com/o/r/releases/download/v1/a.zip")?;
+assert!(url.is_github());
+
+let headers = url.headers(Some(token)); // token only for GitHub hosts
+assert!(Url::is_valid("https://api.github.com/repos/o/r"));
 ```
 
 ## Limitations

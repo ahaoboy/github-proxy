@@ -1,24 +1,57 @@
 [package]
 name = "github-proxy"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2024"
 license = "MIT"
 description = "github-proxy"
 repository = "https://github.com/ahaoboy/github-proxy"
-homepage = "https://github.com/ahaoboy/github-proxy"
 authors = ["ahaoboy"]
 
 [dependencies]
 thiserror = "2"
 serde = { version = "1", features = ["derive"], optional = true }
-wasm-bindgen = { version = "0.2", optional = true }
 strum = "0.28"
 strum_macros = "0.28"
 regex = { version = "1", default-features = false }
+clap = { version = "4", features = ["derive"], optional = true }
+humansize = { version = "2", optional = true }
+
+# HTTP support is native-only; `reqwest` is not part of the primary API.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+reqwest = { version = "0.12", default-features = false, features = [
+  "json",
+  "rustls-tls",
+  "gzip",
+  "cookies",
+], optional = true }
+tokio = { version = "1", default-features = false, features = [
+  "time",
+  "io-util",
+], optional = true }
 
 [features]
+default = ["cli"]
 serde = ["dep:serde"]
-wasm = ["wasm-bindgen"]
+# Shared client + bytes/text/json helpers. No reqwest type in the common API.
+fetch = ["dep:reqwest", "dep:tokio", "dep:serde"]
+# Best-effort GITHUB_TOKEN / `gh` / `git credential` detection.
+token = ["fetch", "tokio/process"]
+# GhArtifact(s) and private release asset downloads.
+artifacts = ["fetch", "serde"]
+# `github-proxy` binary: resolve and download resources from the terminal.
+cli = [
+  "dep:clap",
+  "dep:humansize",
+  "fetch",
+  "token",
+  "artifacts",
+  "tokio/rt",
+]
+
+[[bin]]
+name = "github-proxy"
+path = "src/main.rs"
+required-features = ["cli"]
 
 [profile.release]
 debug = false
