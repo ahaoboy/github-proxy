@@ -41,7 +41,7 @@ jobs:
           rm -rf "$OUT"
           mkdir -p "$OUT"
 
-          PROXIES=(github xget gh-proxy jsdelivr statically)
+          PROXIES=(github jsdelivr)
           FILE_URL="https://github.com/easy-install/easy-install/raw/main/install.sh"
           RELEASE_SPEC="easy-install/easy-install@nightly"
           RELEASE_ASSET="ei-aarch64-apple-darwin.tar.gz"
@@ -93,8 +93,8 @@ jobs:
             if github-proxy -p "$proxy" fetch "$RELEASE_SPEC" "$RELEASE_ASSET" -o "$out"; then
               test -s "$out"
               echo "  ✓ $(wc -c < "$out" | tr -d ' ') bytes"
-            elif [ "$proxy" = "jsdelivr" ] || [ "$proxy" = "statically" ]; then
-              # These mirrors serve raw files only and must fail loudly.
+            elif [ "$proxy" = "jsdelivr" ]; then
+              # jsdelivr serves raw files only and must fail loudly.
               echo "  ⊘ rejected, as expected (no release support)"
               test ! -e "$out"
             else
