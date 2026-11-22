@@ -5,6 +5,9 @@ permissions:
 
 on: [push]
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 defaults:
   run:
     shell: bash --noprofile --norc -CeEuo pipefail {0}
